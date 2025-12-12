@@ -1,0 +1,24 @@
+FROM node:18-alpine
+
+# Create app directory
+WORKDIR /app
+
+# Install dependencies
+COPY package.json package-lock.json* tsconfig.json ./
+COPY src/backend ./src/backend
+COPY prisma ./prisma
+
+RUN npm install --production
+
+# Generate Prisma client
+RUN npx prisma generate
+
+# Run Prisma migrations
+RUN npx prisma migrate deploy
+
+# Build backend (if needed)
+RUN npm run build:backend || echo "No separate build script for backend"
+
+EXPOSE 3000
+
+CMD ["node", "dist/src/backend/main.js"]
